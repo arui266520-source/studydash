@@ -358,6 +358,10 @@ onMounted(() => {
               <div class="w-2.5 h-2.5 rounded-sm bg-orange-500"></div>
               <span class="text-slate-600">综应</span>
             </div>
+            <div class="flex items-center gap-1.5 px-2 py-1 bg-white rounded border border-slate-100 shadow-sm">
+              <div class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></div>
+              <span class="text-slate-600">计算机专业课</span>
+            </div>
           </div>
         </div>
 
