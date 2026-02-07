@@ -39,5 +39,11 @@ export const courses = [{
             { "name": "判断推理课", "credit_hours": 5, "target_subject_keys": ["judgment_reasoning"] },
             { "name": "综合分析课", "credit_hours": 5, "target_subject_keys": ["comprehensive_analysis"] }
         ]
+    },
+    {
+        "institution": "计算机专业课",
+        "modules": [
+            { "name": "计算机专业课", "credit_hours": 30, "target_subject_keys": ["computer_major"] }
+        ]
     }
 ];

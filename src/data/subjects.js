@@ -18,6 +18,16 @@ export const subjectCategories = {
         iconClass: "bg-orange-100 text-orange-600",
         barClass: "bg-orange-500",
         badgeClass: "bg-orange-50 text-orange-600 border-orange-100"
+    },
+    "computer_science": {
+        name: "计算机专业课",
+        colorClass: "from-emerald-50 to-teal-50",
+        bgClass: "bg-gradient-to-br from-white to-emerald-50/50",
+        borderClass: "border-emerald-100",
+        textClass: "text-slate-800",
+        iconClass: "bg-emerald-100 text-emerald-600",
+        barClass: "bg-emerald-500",
+        badgeClass: "bg-emerald-50 text-emerald-600 border-emerald-100"
     }
 };
 
@@ -90,6 +100,14 @@ export const subjects = {
             "parent": "comprehensive_application",
             "question_quantity": 1,
             "remarks": "议论文写作"
+        }
+    },
+    "computer_science": {
+        "computer_major": {
+            "name": "计算机专业课",
+            "parent": "computer_science",
+            "question_quantity": 0,
+            "remarks": "计算机专业相关课程"
         }
     }
 };
