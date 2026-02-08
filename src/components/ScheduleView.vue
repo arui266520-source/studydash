@@ -228,9 +228,9 @@ const isToday = (dateObj) => isSameDay(dateObj, today);
                     <svg v-if="props.completedIds.has(task.id)" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                     </div>
 
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <div class="text-[10px] font-medium opacity-60 truncate leading-none mb-0.5">{{ task.subjectName }}</div>
-                        <div class="text-xs font-bold truncate leading-none text-indigo-600">{{ task.moduleName.replace('刷题：', '') }}</div>
+                    <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
+                        <div class="text-xs text-slate-700 font-medium truncate">{{ task.subjectName }}</div>
+                        <div class="text-xs text-slate-500 shrink-0">{{ task.moduleName.replace('刷题：', '') }}</div>
                     </div>
                 </div>
             </div>
