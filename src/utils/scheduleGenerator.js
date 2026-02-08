@@ -12,9 +12,47 @@ Object.keys(subjects).forEach(cat => {
 export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-03-28') {
     const startDate = startOfDay(new Date(startDateStr));
     const examDate = startOfDay(new Date(examDateStr));
+    const totalDays = differenceInDays(examDate, startDate);
 
+    if (totalDays <= 0) return [];
+
+    let allTasks = [];
+
+    // --- Part 1: Generate Practice Tasks (Daily) ---
+    // Iterate through each day to generate practice tasks
+    let currentDate = new Date(startDate);
+    for (let i = 0; i < totalDays; i++) {
+        const isWeekend = isSaturday(currentDate) || isSunday(currentDate);
+        const multiplier = isWeekend ? 2 : 1;
+        const dateStr = format(currentDate, 'yyyy-MM-dd');
+
+        Object.keys(flatSubjects).forEach(subKey => {
+            const subject = flatSubjects[subKey];
+            const baseCount = subject.practice_workday || 0;
+
+            if (baseCount > 0) {
+                const dailyCount = baseCount * multiplier;
+                allTasks.push({
+                    id: `practice-${dateStr}-${subKey}`,
+                    type: 'practice', // Mark as practice task
+                    subjectKey: subKey,
+                    subjectName: subject.name,
+                    courseInstitution: '每日刷题',
+                    moduleName: `刷题：${dailyCount}题`,
+                    index: i + 1, // Day index
+                    totalInModule: dailyCount, // Use this field to store question count
+                    date: dateStr,
+                    isCompleted: false,
+                    isOverdue: false
+                });
+            }
+        });
+        currentDate = addDays(currentDate, 1);
+    }
+
+    // --- Part 2: Generate Lesson Tasks (Balanced) ---
     // 1. Create Task Pool
-    let taskPool = [];
+    let lessonTaskPool = [];
 
     courses.forEach(course => {
         course.modules.forEach(mod => {
@@ -31,8 +69,9 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
                 }
 
                 for (let i = 0; i < count; i++) {
-                    taskPool.push({
+                    lessonTaskPool.push({
                         id: `${course.institution}-${mod.name}-${targetKey}-${i}`,
+                        type: 'lesson', // Mark as lesson task
                         subjectKey: targetKey,
                         subjectName: (flatSubjects[targetKey] && flatSubjects[targetKey].name) || targetKey,
                         courseInstitution: course.institution,
@@ -45,9 +84,6 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
         });
     });
 
-    const totalDays = differenceInDays(examDate, startDate);
-    if (totalDays <= 0) return { tasks: [], schedule: {} };
-
     // 2. Prep for Balanced Scheduling
     const tasksBySubject = {};
     const subjectTotals = {};
@@ -57,7 +93,7 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
         subjectTotals[k] = 0;
     });
 
-    taskPool.forEach(t => {
+    lessonTaskPool.forEach(t => {
         if (!tasksBySubject[t.subjectKey]) {
             tasksBySubject[t.subjectKey] = [];
             subjectTotals[t.subjectKey] = 0;
@@ -66,18 +102,12 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
         subjectTotals[t.subjectKey]++;
     });
 
-    // Calculate ideal "Tasks Per Day" for each subject to finish exactly on time
-    const subjectDailyRates = {};
-    Object.keys(subjectTotals).forEach(k => {
-        subjectDailyRates[k] = subjectTotals[k] / totalDays;
-    });
-
     // Track progress
     const subjectProgress = {}; // key -> count assigned
     Object.keys(subjectTotals).forEach(k => subjectProgress[k] = 0);
 
-    // 3. Daily Loop
-    const assignedTasks = [];
+    // 3. Daily Loop for Lessons
+    const assignedLessonTasks = [];
 
     // Pre-calculate daily weights to ensure exact distribution
     const dailyWeights = [];
@@ -97,7 +127,7 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
         d = addDays(d, 1);
     }
 
-    const totalItems = taskPool.length;
+    const totalItems = lessonTaskPool.length;
     let accumulatedWeight = 0;
     let accumulatedTasksAssigned = 0;
 
@@ -171,7 +201,7 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
                 task.isCompleted = false;
                 task.isOverdue = false;
 
-                assignedTasks.push(task);
+                assignedLessonTasks.push(task);
                 subjectProgress[subKey]++;
 
                 accumulatedTasksAssigned++;
@@ -199,15 +229,19 @@ export function generateSchedule(startDateStr = new Date(), examDateStr = '2026-
         leftovers.forEach(t => {
             t.date = lastDateStr;
             t.isCompleted = false;
-            assignedTasks.push(t);
+            assignedLessonTasks.push(t);
         });
     }
 
-    // Sort assignedTasks by date then index
-    assignedTasks.sort((a, b) => {
+    // Combine Practice and Lesson Tasks
+    allTasks = [...allTasks, ...assignedLessonTasks];
+
+    // Sort allTasks by date then index/type
+    allTasks.sort((a, b) => {
         if (a.date !== b.date) return a.date.localeCompare(b.date);
+        // Put lessons first, then practice? or mix? Let's sort by subjectKey to group them
         return a.subjectKey.localeCompare(b.subjectKey);
     });
 
-    return assignedTasks;
+    return allTasks;
 }

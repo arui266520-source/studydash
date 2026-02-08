@@ -91,6 +91,10 @@ const getTaskStyle = (task) => {
     }
     
     // Pending state - use category colors
+    if (task.type === 'practice') {
+        return 'bg-indigo-50 border-indigo-100 text-indigo-900 hover:border-indigo-300 hover:shadow-md hover:bg-white';
+    }
+
     if (catConfig) {
         // We can't use dynamic classes easily with full safety, but we can return inline styles or specific known classes
         // Let's rely on the config classes we added
@@ -187,7 +191,8 @@ const isToday = (dateObj) => isSameDay(dateObj, today);
             <div class="flex-1 min-w-0 z-10">
               <div class="flex justify-between items-start mb-1">
                 <span class="text-xs font-bold opacity-75 tracking-wide">{{ task.subjectName }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/5 font-mono">{{ task.index }}/{{ task.totalInModule }}</span>
+                <span v-if="task.type === 'practice'" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600 font-bold">刷题</span>
+                <span v-else class="text-[10px] px-1.5 py-0.5 rounded bg-black/5 font-mono">{{ task.index }}/{{ task.totalInModule }}</span>
               </div>
               <div class="text-sm font-bold truncate leading-tight mb-0.5">{{ task.moduleName }}</div>
               <div class="text-xs opacity-60 truncate">{{ task.courseInstitution }}</div>

@@ -318,10 +318,15 @@ onMounted(() => {
               
               <!-- Card Header -->
               <div class="flex justify-between items-center mb-3">
-                 <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 truncate max-w-[60%]">
-                   {{ task.subjectName }}
-                 </span>
-                 <span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm shadow-rose-200">超期</span>
+                 <div class="flex gap-1 overflow-hidden">
+                    <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 truncate max-w-[60%]">
+                    {{ task.subjectName }}
+                    </span>
+                    <span v-if="task.type === 'practice'" class="text-[10px] font-medium text-indigo-500 bg-indigo-50 px-1.5 py-1 rounded-md border border-indigo-100 shrink-0">
+                    刷题
+                    </span>
+                 </div>
+                 <span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm shadow-rose-200 shrink-0">超期</span>
               </div>
               
               <!-- Content -->
