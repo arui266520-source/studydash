@@ -20,11 +20,16 @@ const tasksByDate = computed(() => {
   });
   
   // Convert to array and sort
-  return Object.keys(groups).sort().map(date => ({
-    date,
-    dateObj: parseISO(date),
-    tasks: groups[date]
-  }));
+  return Object.keys(groups).sort().map(date => {
+    const allTasks = groups[date];
+    return {
+      date,
+      dateObj: parseISO(date),
+      tasks: allTasks,
+      lessonTasks: allTasks.filter(t => t.type !== 'practice'),
+      practiceTasks: allTasks.filter(t => t.type === 'practice')
+    };
+  });
 });
 
 // State for expanded sections
@@ -172,9 +177,10 @@ const isToday = (dateObj) => isSameDay(dateObj, today);
         class="p-4 pt-0 border-t border-slate-100/50"
         :class="isToday(dayGroup.dateObj) ? 'bg-white' : ''"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+        <!-- Part 1: Lessons (Standard Size) -->
+        <div v-if="dayGroup.lessonTasks.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           <div 
-            v-for="task in dayGroup.tasks" 
+            v-for="task in dayGroup.lessonTasks" 
             :key="task.id"
             @click="emit('toggle', task.id)"
             class="border rounded-lg p-3 cursor-pointer transition-all duration-200 flex items-start gap-3 group/task relative overflow-hidden"
@@ -191,14 +197,45 @@ const isToday = (dateObj) => isSameDay(dateObj, today);
             <div class="flex-1 min-w-0 z-10">
               <div class="flex justify-between items-start mb-1">
                 <span class="text-xs font-bold opacity-75 tracking-wide">{{ task.subjectName }}</span>
-                <span v-if="task.type === 'practice'" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600 font-bold">刷题</span>
-                <span v-else class="text-[10px] px-1.5 py-0.5 rounded bg-black/5 font-mono">{{ task.index }}/{{ task.totalInModule }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/5 font-mono">{{ task.index }}/{{ task.totalInModule }}</span>
               </div>
               <div class="text-sm font-bold truncate leading-tight mb-0.5">{{ task.moduleName }}</div>
               <div class="text-xs opacity-60 truncate">{{ task.courseInstitution }}</div>
             </div>
           </div>
         </div>
+
+        <!-- Divider -->
+        <div v-if="dayGroup.lessonTasks.length > 0 && dayGroup.practiceTasks.length > 0" class="my-4 border-t border-dashed border-slate-100 flex items-center justify-center">
+            <span class="bg-white px-2 text-[10px] text-slate-300 uppercase tracking-widest">Practice</span>
+        </div>
+
+        <!-- Part 2: Practice Tasks (Compact Size) -->
+        <div v-if="dayGroup.practiceTasks.length > 0" :class="dayGroup.lessonTasks.length > 0 ? '' : 'mt-4'">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+                <div 
+                    v-for="task in dayGroup.practiceTasks" 
+                    :key="task.id"
+                    @click="emit('toggle', task.id)"
+                    class="border rounded-md px-2 py-1.5 cursor-pointer transition-all duration-200 flex items-center gap-2 group/task hover:shadow-sm"
+                    :class="getTaskStyle(task)"
+                >
+                    <!-- Small Checkbox -->
+                    <div 
+                    class="w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition-colors shrink-0"
+                    :class="props.completedIds.has(task.id) ? 'bg-emerald-500 border-emerald-500' : 'bg-white/50 border-black/10 group-hover/task:border-indigo-400'"
+                    >
+                    <svg v-if="props.completedIds.has(task.id)" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <div class="text-[10px] font-medium opacity-60 truncate leading-none mb-0.5">{{ task.subjectName }}</div>
+                        <div class="text-xs font-bold truncate leading-none text-indigo-600">{{ task.moduleName.replace('刷题：', '') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
       </div>
     </div>
   </div>
