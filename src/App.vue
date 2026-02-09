@@ -325,7 +325,7 @@ onMounted(() => {
             <p class="text-slate-500 text-sm mb-6 pl-[4.5rem]">以下任务按计划应在今日之前完成，请尽快补课消除红色警报：</p>
 
             <!-- Cards Grid -->
-            <div ref="alertContainer" @wheel="handleWheel" class="flex gap-4 pl-0 md:pl-[4.5rem] overflow-x-auto pb-4 scrollbar-hide">
+            <div ref="alertContainer" @wheel="handleWheel" class="flex gap-4 pl-0 md:pl-[4.5rem] overflow-x-auto pb-4 pt-4 scrollbar-hide">
               <div v-for="task in overdueTasks" :key="task.id" 
                    @click="toggleTask(task.id)"
                    class="bg-white border border-rose-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group relative hover:border-rose-300 hover:-translate-y-0.5 min-w-[280px] shrink-0">
