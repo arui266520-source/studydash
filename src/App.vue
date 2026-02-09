@@ -333,7 +333,7 @@ onMounted(() => {
                 <!-- Card Header -->
                 <div class="flex justify-between items-center mb-3">
                    <div class="flex gap-1 overflow-hidden">
-                      <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 truncate max-w-[60%]">
+                      <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 whitespace-nowrap">
                       {{ task.subjectName }}
                       </span>
                       <span v-if="task.type === 'practice'" class="text-[10px] font-medium text-indigo-500 bg-indigo-50 px-1.5 py-1 rounded-md border border-indigo-100 shrink-0">
