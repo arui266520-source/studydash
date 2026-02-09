@@ -13,6 +13,8 @@ const TODAY_DATE = new Date(); // Use real date
 
 // UI State
 const currentTab = ref('dashboard'); // 'dashboard' or 'schedule'
+const isAlertExpanded = ref(true);
+const alertContainer = ref(null);
 
 // Data State
 const tasks = ref([]);
@@ -176,6 +178,16 @@ const forceReloadDefault = () => {
    }
 }
 
+const handleWheel = (e) => {
+  if (alertContainer.value) {
+    // Only prevent default if we can scroll horizontally
+    if (alertContainer.value.scrollWidth > alertContainer.value.clientWidth) {
+        // e.preventDefault(); // Optional: uncomment if you want to block vertical scroll
+        alertContainer.value.scrollLeft += e.deltaY;
+    }
+  }
+};
+
 onMounted(() => {
   if (!loadState()) {
     // If no data anywhere, generate fresh schedule
@@ -291,7 +303,7 @@ onMounted(() => {
           <!-- Header -->
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-4">
-              <div class="bg-rose-100 p-3 rounded-full text-rose-500 animate-pulse shadow-sm">
+              <div class="bg-rose-100 p-3 rounded-full text-rose-500 animate-jump shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                 </svg>
@@ -303,48 +315,46 @@ onMounted(() => {
               </div>
             </div>
             
-            <button v-if="overdueTasks.length > 4" class="text-sm text-slate-400 hover:text-rose-500 flex items-center gap-1 transition-colors px-3 py-1 rounded hover:bg-slate-50">
-              查看详情 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <button v-if="overdueTasks.length > 0" @click="isAlertExpanded = !isAlertExpanded" class="text-sm text-slate-400 hover:text-rose-500 flex items-center gap-1 transition-colors px-3 py-1 rounded hover:bg-slate-50">
+              {{ isAlertExpanded ? '收起' : '查看详情' }} 
+              <svg class="w-4 h-4 transition-transform duration-300" :class="{'rotate-180': isAlertExpanded}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
           </div>
 
-          <p class="text-slate-500 text-sm mb-6 pl-[4.5rem]">以下任务按计划应在今日之前完成，请尽快补课消除红色警报：</p>
+          <div v-show="isAlertExpanded">
+            <p class="text-slate-500 text-sm mb-6 pl-[4.5rem]">以下任务按计划应在今日之前完成，请尽快补课消除红色警报：</p>
 
-          <!-- Cards Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pl-0 md:pl-[4.5rem]">
-            <div v-for="task in overdueTasks.slice(0, 4)" :key="task.id" 
-                 @click="toggleTask(task.id)"
-                 class="bg-white border border-rose-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group relative hover:border-rose-300 hover:-translate-y-0.5">
-              
-              <!-- Card Header -->
-              <div class="flex justify-between items-center mb-3">
-                 <div class="flex gap-1 overflow-hidden">
-                    <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 truncate max-w-[60%]">
-                    {{ task.subjectName }}
-                    </span>
-                    <span v-if="task.type === 'practice'" class="text-[10px] font-medium text-indigo-500 bg-indigo-50 px-1.5 py-1 rounded-md border border-indigo-100 shrink-0">
-                    刷题
-                    </span>
-                 </div>
-                 <span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm shadow-rose-200 shrink-0">超期</span>
-              </div>
-              
-              <!-- Content -->
-              <div class="font-bold text-slate-800 text-base mb-4 line-clamp-2 h-10 leading-tight">
-                 <span class="text-slate-300 mr-1">{{ task.index }}.</span>{{ task.moduleName }}
-              </div>
-              
-              <!-- Footer -->
-              <div class="text-xs text-rose-600 flex items-center gap-1.5 font-medium bg-rose-50 p-2 rounded-lg group-hover:bg-rose-100 transition-colors">
-                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                 截止: {{ task.date }}
+            <!-- Cards Grid -->
+            <div ref="alertContainer" @wheel="handleWheel" class="flex gap-4 pl-0 md:pl-[4.5rem] overflow-x-auto pb-4 scrollbar-hide">
+              <div v-for="task in overdueTasks" :key="task.id" 
+                   @click="toggleTask(task.id)"
+                   class="bg-white border border-rose-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group relative hover:border-rose-300 hover:-translate-y-0.5 min-w-[280px] shrink-0">
+                
+                <!-- Card Header -->
+                <div class="flex justify-between items-center mb-3">
+                   <div class="flex gap-1 overflow-hidden">
+                      <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 truncate max-w-[60%]">
+                      {{ task.subjectName }}
+                      </span>
+                      <span v-if="task.type === 'practice'" class="text-[10px] font-medium text-indigo-500 bg-indigo-50 px-1.5 py-1 rounded-md border border-indigo-100 shrink-0">
+                      刷题
+                      </span>
+                   </div>
+                   <span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm shadow-rose-200 shrink-0">超期</span>
+                </div>
+                
+                <!-- Content -->
+                <div class="font-bold text-slate-800 text-base mb-4 line-clamp-2 h-10 leading-tight">
+                   <span class="text-slate-300 mr-1">{{ task.index }}.</span>{{ task.moduleName }}
+                </div>
+                
+                <!-- Footer -->
+                <div class="text-xs text-rose-600 flex items-center gap-1.5 font-medium bg-rose-50 p-2 rounded-lg group-hover:bg-rose-100 transition-colors">
+                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                   截止: {{ task.date }}
+                </div>
               </div>
             </div>
-          </div>
-          
-          <!-- Bottom decoration bar -->
-          <div v-if="overdueTasks.length > 4" class="h-1.5 w-full bg-slate-100 mt-6 rounded-full overflow-hidden ml-[4.5rem] max-w-[calc(100%-4.5rem)]">
-              <div class="h-full bg-rose-300/50 w-1/3 rounded-full"></div>
           </div>
         </div>
       </div>
@@ -406,5 +416,21 @@ onMounted(() => {
 <style scoped>
 .shadow-brand {
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.animate-jump {
+  animation: jump 1s infinite ease-in-out;
+}
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 </style>
