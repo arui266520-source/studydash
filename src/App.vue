@@ -182,7 +182,7 @@ const handleWheel = (e) => {
   if (alertContainer.value) {
     // Only prevent default if we can scroll horizontally
     if (alertContainer.value.scrollWidth > alertContainer.value.clientWidth) {
-        // e.preventDefault(); // Optional: uncomment if you want to block vertical scroll
+        e.preventDefault(); 
         alertContainer.value.scrollLeft += e.deltaY;
     }
   }
