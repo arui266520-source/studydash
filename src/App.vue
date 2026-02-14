@@ -77,6 +77,19 @@ const mergedOverdueTasks = computed(() => {
   return Object.values(groups);
 });
 
+const overdueSummary = computed(() => {
+  let courses = 0;
+  let practices = 0;
+  overdueTasks.value.forEach(t => {
+    if (t.type === 'practice') {
+      practices++;
+    } else {
+      courses++;
+    }
+  });
+  return { courses, practices };
+});
+
 const totalProgress = computed(() => {
   if (tasks.value.length === 0) return 0;
   return Math.round((completedIds.value.size / tasks.value.length) * 100);
@@ -331,7 +344,7 @@ onMounted(() => {
               </div>
               <div>
                 <h3 class="text-xl font-bold text-slate-700 flex items-baseline gap-2">
-                  警报：发现 <span class="text-rose-600 border-b-2 border-rose-200 px-1 font-black text-2xl">{{ overdueTasks.length }}</span> 个学习任务已超时！
+                  警报：累计发现 <span class="text-rose-600 border-b-2 border-rose-200 px-1 font-black text-2xl">{{ overdueSummary.courses }}</span> 个课时、<span class="text-rose-600 border-b-2 border-rose-200 px-1 font-black text-2xl">{{ overdueSummary.practices }}</span> 题刷题任务已超时！
                 </h3>
               </div>
             </div>
