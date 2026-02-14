@@ -364,8 +364,12 @@ onMounted(() => {
                 </div>
                 
                 <!-- Content -->
-                <div class="font-bold text-slate-800 text-base mb-4 line-clamp-2 h-10 leading-tight">
-                   {{ group.subjectName }} <span class="text-rose-500 ml-1">x{{ group.count }}</span> {{ group.type === 'practice' ? '组' : '课时' }}
+                <div class="font-bold text-slate-800 text-base mb-4 h-12 flex items-center gap-1">
+                   <span class="line-clamp-2 leading-tight flex-1">{{ group.subjectName }}</span>
+                   <div class="flex items-baseline gap-0.5 shrink-0">
+                     <span class="text-rose-600 border-b-2 border-rose-200 px-1 font-black text-xl">{{ group.count }}</span>
+                     <span class="text-xs text-slate-400 font-normal">{{ group.type === 'practice' ? '题' : '课时' }}</span>
+                   </div>
                 </div>
                 
                 <!-- Footer -->
