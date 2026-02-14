@@ -56,6 +56,27 @@ const overdueTasks = computed(() => {
   return overdue;
 });
 
+const mergedOverdueTasks = computed(() => {
+  const groups = {};
+  overdueTasks.value.forEach(t => {
+    const key = `${t.subjectName}_${t.type || 'course'}`;
+    if (!groups[key]) {
+      groups[key] = {
+        subjectName: t.subjectName,
+        type: t.type || 'course', // Assuming 'course' if undefined, based on usage
+        count: 0,
+        earliestDate: t.date,
+        id: key // unique key for v-for
+      };
+    }
+    groups[key].count++;
+    if (new Date(t.date) < new Date(groups[key].earliestDate)) {
+      groups[key].earliestDate = t.date;
+    }
+  });
+  return Object.values(groups);
+});
+
 const totalProgress = computed(() => {
   if (tasks.value.length === 0) return 0;
   return Math.round((completedIds.value.size / tasks.value.length) * 100);
@@ -297,7 +318,7 @@ onMounted(() => {
       </div>
 
       <!-- Alert Section -->
-      <div v-if="overdueTasks.length > 0" class="mb-8">
+      <div v-if="overdueTasks.length > 0 && currentTab === 'dashboard'" class="mb-8">
         <div class="bg-white rounded-xl shadow-md border-l-[6px] border-rose-500 p-6 relative overflow-hidden transition-all hover:shadow-lg">
           
           <!-- Header -->
@@ -326,17 +347,16 @@ onMounted(() => {
 
             <!-- Cards Grid -->
             <div ref="alertContainer" @wheel="handleWheel" class="flex gap-4 pl-0 md:pl-[4.5rem] overflow-x-auto pb-4 pt-4 scrollbar-hide">
-              <div v-for="task in overdueTasks" :key="task.id" 
-                   @click="toggleTask(task.id)"
-                   class="bg-white border border-rose-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group relative hover:border-rose-300 hover:-translate-y-0.5 min-w-[280px] shrink-0">
+              <div v-for="group in mergedOverdueTasks" :key="group.id" 
+                   class="bg-white border border-rose-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group relative hover:border-rose-300 hover:-translate-y-0.5 min-w-[280px] shrink-0">
                 
                 <!-- Card Header -->
                 <div class="flex justify-between items-center mb-3">
                    <div class="flex gap-1 overflow-hidden">
                       <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 whitespace-nowrap">
-                      {{ task.subjectName }}
+                      {{ group.subjectName }}
                       </span>
-                      <span v-if="task.type === 'practice'" class="text-[10px] font-medium text-indigo-500 bg-indigo-50 px-1.5 py-1 rounded-md border border-indigo-100 shrink-0">
+                      <span v-if="group.type === 'practice'" class="text-[10px] font-medium text-indigo-500 bg-indigo-50 px-1.5 py-1 rounded-md border border-indigo-100 shrink-0">
                       刷题
                       </span>
                    </div>
@@ -345,13 +365,13 @@ onMounted(() => {
                 
                 <!-- Content -->
                 <div class="font-bold text-slate-800 text-base mb-4 line-clamp-2 h-10 leading-tight">
-                   <span class="text-slate-300 mr-1">{{ task.index }}.</span>{{ task.moduleName }}
+                   {{ group.subjectName }} <span class="text-rose-500 ml-1">x{{ group.count }}</span> {{ group.type === 'practice' ? '组' : '课时' }}
                 </div>
                 
                 <!-- Footer -->
                 <div class="text-xs text-rose-600 flex items-center gap-1.5 font-medium bg-rose-50 p-2 rounded-lg group-hover:bg-rose-100 transition-colors">
                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                   截止: {{ task.date }}
+                   截止: {{ group.earliestDate }}
                 </div>
               </div>
             </div>
