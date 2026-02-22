@@ -69,7 +69,16 @@ const mergedOverdueTasks = computed(() => {
         id: key // unique key for v-for
       };
     }
-    groups[key].count++;
+    
+    // Correctly calculate count based on task type
+    if (t.type === 'practice') {
+      // Use totalInModule if available (which stores question count), otherwise default to 1
+      groups[key].count += (t.totalInModule || 1);
+    } else {
+      // For course lessons, each task is 1 lesson
+      groups[key].count++;
+    }
+
     if (new Date(t.date) < new Date(groups[key].earliestDate)) {
       groups[key].earliestDate = t.date;
     }
@@ -82,7 +91,7 @@ const overdueSummary = computed(() => {
   let practices = 0;
   overdueTasks.value.forEach(t => {
     if (t.type === 'practice') {
-      practices++;
+      practices += (t.totalInModule || 1);
     } else {
       courses++;
     }
